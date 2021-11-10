@@ -5,6 +5,7 @@ import net.buycraft.plugin.IBuycraftPlatform;
 import net.buycraft.plugin.data.QueuedPlayer;
 import net.buycraft.plugin.data.responses.ServerInformation;
 import net.buycraft.plugin.execution.DuePlayerFetcher;
+import net.buycraft.plugin.execution.strategy.ToRunQueuedCommand;
 import net.buycraft.plugin.platform.NoBlocking;
 import net.buycraft.plugin.platform.standalone.StandaloneBuycraftPlatform;
 import okhttp3.OkHttpClient;
@@ -53,6 +54,11 @@ public class StandaloneBuycraftRunner {
         return this.playerFetcher;
     }
 
+    // SpaceDelta
+    public IBuycraftPlatform getPlatform() {
+        return platform;
+    }
+
     @NoBlocking
     private class Platform extends StandaloneBuycraftPlatform {
         Platform() {
@@ -66,6 +72,11 @@ public class StandaloneBuycraftRunner {
         @Override
         public void dispatchCommand(String command) {
             dispatcher.dispatchCommand(command);
+        }
+
+        @Override
+        public void dispatchCommand(ToRunQueuedCommand command, String formattedCommand) {
+            dispatcher.dispatchCommand(command, formattedCommand);
         }
 
         @Override

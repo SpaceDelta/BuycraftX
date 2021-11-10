@@ -71,6 +71,8 @@ public class QueuedCommandExecutor implements CommandExecutor, Runnable {
                 platform.log(Level.INFO, String.format("Dispatching command '%s' for player '%s'.", finalCommand, command.getPlayer().getName()));
                 try {
                     platform.dispatchCommand(finalCommand);
+                    platform.dispatchCommand(command, finalCommand); // SpaceDelta
+
                     completedCommandsTask.add(command.getCommand().getId());
                 } catch (Exception e) {
                     platform.log(Level.SEVERE, String.format("Could not dispatch command '%s' for player '%s'. " +

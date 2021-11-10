@@ -22,6 +22,7 @@ public class BuycraftListener implements Listener {
             return;
         }
 
+        /*
         plugin.getServerEventSenderTask().queueEvent(new ServerEvent(
                 event.getPlayer().getUniqueId().toString().replace("-", ""),
                 event.getPlayer().getName(),
@@ -29,6 +30,7 @@ public class BuycraftListener implements Listener {
                 ServerEvent.JOIN_EVENT,
                 new Date()
         ));
+         */
 
         QueuedPlayer qp = plugin.getDuePlayerFetcher().fetchAndRemoveDuePlayer(event.getPlayer().getName());
         if (qp != null) {
@@ -36,12 +38,14 @@ public class BuycraftListener implements Listener {
         }
     }
 
+    /*
     @EventHandler
     public void onDisconnect(PlayerDisconnectEvent event) {
         if (plugin.getApiClient() == null) {
             return;
         }
 
+        // SpaceDelta
         plugin.getServerEventSenderTask().queueEvent(new ServerEvent(
                 event.getPlayer().getUniqueId().toString().replace("-", ""),
                 event.getPlayer().getName(),
@@ -50,4 +54,6 @@ public class BuycraftListener implements Listener {
                 new Date()
         ));
     }
+     */
+
 }
