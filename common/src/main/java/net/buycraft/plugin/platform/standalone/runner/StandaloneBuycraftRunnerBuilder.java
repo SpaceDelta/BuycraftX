@@ -1,10 +1,10 @@
 package net.buycraft.plugin.platform.standalone.runner;
 
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
 
 import java.util.Objects;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.logging.Logger;
 
 /**
  * This class allows for simple handling and execution of Buycraft commands with a fluent API.

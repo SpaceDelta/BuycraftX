@@ -9,12 +9,12 @@ import net.buycraft.plugin.execution.strategy.ToRunQueuedCommand;
 import net.buycraft.plugin.platform.NoBlocking;
 import net.buycraft.plugin.platform.standalone.StandaloneBuycraftPlatform;
 import okhttp3.OkHttpClient;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class StandaloneBuycraftRunner {
     private final CommandDispatcher dispatcher;
@@ -91,12 +91,20 @@ public class StandaloneBuycraftRunner {
 
         @Override
         public void log(Level level, String message) {
-            logger.log(level, message);
+            // logger.log(level, message);
+            // SpaceDelta // switch to SLF4J
+            if (level.equals(Level.WARNING))
+                logger.warn(message);
+            else if (level.equals(Level.SEVERE))
+                logger.error(message);
+            else
+                logger.info(message);
         }
 
         @Override
         public void log(Level level, String message, Throwable throwable) {
-            logger.log(level, message, throwable);
+            // logger.log(level, message, throwable);
+            logger.error(message, throwable); // SpaceDelta
         }
 
         @Override
