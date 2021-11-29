@@ -6,7 +6,10 @@ import net.buycraft.plugin.execution.placeholder.PlaceholderManager;
 import net.buycraft.plugin.execution.strategy.CommandExecutor;
 import net.buycraft.plugin.execution.strategy.ToRunQueuedCommand;
 import net.buycraft.plugin.platform.PlatformInformation;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
@@ -33,7 +36,12 @@ public interface IBuycraftPlatform {
     void dispatchCommand(String command);
 
     // SpaceDelta
-    default void dispatchCommand(ToRunQueuedCommand command, String formattedCommand) {
+    @Deprecated
+    default void dispatchCommand(@NotNull ToRunQueuedCommand command, @NotNull String formattedCommand) {
+    }
+
+    // SpaceDelta
+    default void dispatchCommands(@NotNull Map<ToRunQueuedCommand, String> commands) {
     }
 
     /**

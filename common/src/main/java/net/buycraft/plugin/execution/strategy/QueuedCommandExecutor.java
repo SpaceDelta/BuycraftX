@@ -1,5 +1,8 @@
 package net.buycraft.plugin.execution.strategy;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import net.buycraft.plugin.IBuycraftPlatform;
 import net.buycraft.plugin.platform.NoBlocking;
 
@@ -12,7 +15,9 @@ public class QueuedCommandExecutor implements CommandExecutor, Runnable {
     private static final long MAXIMUM_NOTIFICATION_TIME = TimeUnit.MILLISECONDS.toNanos(5);
     private final IBuycraftPlatform platform;
     private final boolean blocking;
-    private final Set<ToRunQueuedCommand> commandQueue = new LinkedHashSet<>();
+    // private final Set<ToRunQueuedCommand> commandQueue = new LinkedHashSet<>(); // SpaceDelta :: change to uuid index
+    private final Multimap<String, ToRunQueuedCommand> commandQueue = ArrayListMultimap.create();
+
     private final PostCompletedCommandsTask completedCommandsTask;
     private int runMaxCommandsBlocking = 10;
 
@@ -25,18 +30,19 @@ public class QueuedCommandExecutor implements CommandExecutor, Runnable {
     @Override
     public void queue(ToRunQueuedCommand command) {
         synchronized (commandQueue) {
-            commandQueue.add(command);
+            commandQueue.put(command.getPlayer().getUuid(), command);
         }
     }
 
     @Override
     public void run() {
-        List<ToRunQueuedCommand> runThisTick = new ArrayList<>();
+        // List<ToRunQueuedCommand> runThisTick = new ArrayList<>();
+        Multimap<String, ToRunQueuedCommand> runThisTick = ArrayListMultimap.create();
         synchronized (commandQueue) {
             ArrayList<Integer> queuedCommandIds = new ArrayList<>();
             Set<ToRunQueuedCommand> removeSet = new HashSet<ToRunQueuedCommand>();
 
-            for (ToRunQueuedCommand command : commandQueue) {
+            for (ToRunQueuedCommand command : commandQueue.values()) {
                 if (queuedCommandIds.contains(command.getCommand().getId())) {
                     removeSet.add(command);
                     continue;
@@ -44,7 +50,8 @@ public class QueuedCommandExecutor implements CommandExecutor, Runnable {
                 queuedCommandIds.add(command.getCommand().getId());
 
                 if (command.canExecute(platform)) {
-                    runThisTick.add(command);
+                    runThisTick.put(command.getPlayer().getUuid(), command);
+                    // runThisTick.add(command); // SpaceDelta :: change to uuid index
                     //it.remove();
                     removeSet.add(command);
                 }
@@ -54,31 +61,43 @@ public class QueuedCommandExecutor implements CommandExecutor, Runnable {
                 }
             }
 
-            commandQueue.removeAll(removeSet);
+            // commandQueue.removeAll(removeSet); // SpaceDelta :: change to uuid index
+            removeSet.forEach(command -> commandQueue.remove(command.getPlayer().getUuid(), command));
         }
 
         long start = System.nanoTime();
-        for (ToRunQueuedCommand command : runThisTick) {
-            if (completedCommandsTask.getRetained().contains(command.getCommand().getId())) {
-                synchronized (commandQueue) {
-                    commandQueue.remove(command);
-                }
-                continue;
-            }
+        for (Map.Entry<String, Collection<ToRunQueuedCommand>> entry : runThisTick.asMap().entrySet()) {
+            final String playerId = entry.getKey();
 
-            if (command.canExecute(platform)) {
-                String finalCommand = platform.getPlaceholderManager().doReplace(command.getPlayer(), command.getCommand());
-                platform.log(Level.INFO, String.format("Dispatching command '%s' for player '%s'.", finalCommand, command.getPlayer().getName()));
-                try {
-                    platform.dispatchCommand(finalCommand);
-                    platform.dispatchCommand(command, finalCommand); // SpaceDelta
+            platform.log(Level.INFO, String.format("Dispatching %d commands for player '%s'.", entry.getValue().size(), playerId));
 
-                    completedCommandsTask.add(command.getCommand().getId());
-                } catch (Exception e) {
-                    platform.log(Level.SEVERE, String.format("Could not dispatch command '%s' for player '%s'. " +
-                            "This is typically a plugin error, not an issue with BuycraftX.", finalCommand, command.getPlayer().getName()), e);
+            Map<ToRunQueuedCommand, String> queuedCommands = Maps.newHashMap();
+            entry.getValue().forEach(command -> {
+                if (completedCommandsTask.getRetained().contains(command.getCommand().getId())) {
+                    synchronized (commandQueue) {
+                        commandQueue.remove(command.getPlayer().getUuid(), command);
+                    }
+
+                    return;
                 }
-            }
+
+                if (command.canExecute(platform)) {
+
+                    String finalCommand = platform.getPlaceholderManager().doReplace(command.getPlayer(), command.getCommand());
+                    platform.log(Level.INFO, String.format("Preparing command '%s' for player '%s'.", finalCommand, playerId));
+                    try {
+                        queuedCommands.put(command, finalCommand);
+                        completedCommandsTask.add(command.getCommand().getId());
+                    } catch (Exception e) {
+                        platform.log(Level.SEVERE, String.format("Could not dispatch command '%s' for player '%s'. " +
+                                "This is typically a plugin error, not an issue with BuycraftX.", finalCommand, command.getPlayer().getName()), e);
+                    }
+
+                }
+            });
+
+            platform.log(Level.INFO, "Dispatching " + queuedCommands.values() + " for " + playerId);
+            platform.dispatchCommands(queuedCommands);
         }
 
         long fullTime = System.nanoTime() - start;

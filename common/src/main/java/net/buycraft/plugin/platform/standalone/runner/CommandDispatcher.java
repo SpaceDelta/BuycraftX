@@ -1,7 +1,9 @@
 package net.buycraft.plugin.platform.standalone.runner;
 
-import net.buycraft.plugin.data.QueuedPlayer;
 import net.buycraft.plugin.execution.strategy.ToRunQueuedCommand;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Map;
 
 /**
  * {@code CommandDispatcher}s are called when Buycraft processes a command. The dispatcher will not get any other
@@ -11,5 +13,8 @@ public interface CommandDispatcher {
     void dispatchCommand(String command);
 
     // SpaceDelta
-    void dispatchCommand(ToRunQueuedCommand command, String formattedCommand);
+    void dispatchCommand(@NotNull ToRunQueuedCommand command, @NotNull String formattedCommand);
+
+    // SpaceDelta
+    void dispatchCommands(@NotNull Map<ToRunQueuedCommand, String> commands);
 }

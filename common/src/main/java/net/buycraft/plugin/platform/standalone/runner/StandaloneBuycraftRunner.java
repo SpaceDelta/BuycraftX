@@ -9,9 +9,11 @@ import net.buycraft.plugin.execution.strategy.ToRunQueuedCommand;
 import net.buycraft.plugin.platform.NoBlocking;
 import net.buycraft.plugin.platform.standalone.StandaloneBuycraftPlatform;
 import okhttp3.OkHttpClient;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -75,8 +77,13 @@ public class StandaloneBuycraftRunner {
         }
 
         @Override
-        public void dispatchCommand(ToRunQueuedCommand command, String formattedCommand) {
+        public void dispatchCommand(@NotNull ToRunQueuedCommand command, @NotNull String formattedCommand) {
             dispatcher.dispatchCommand(command, formattedCommand);
+        }
+
+        @Override
+        public void dispatchCommands(@NotNull Map<ToRunQueuedCommand, String> commands) {
+            dispatcher.dispatchCommands(commands);
         }
 
         @Override
