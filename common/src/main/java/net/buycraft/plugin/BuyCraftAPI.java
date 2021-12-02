@@ -2,10 +2,7 @@ package net.buycraft.plugin;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import net.buycraft.plugin.data.Coupon;
-import net.buycraft.plugin.data.GiftCard;
-import net.buycraft.plugin.data.RecentPayment;
-import net.buycraft.plugin.data.ServerEvent;
+import net.buycraft.plugin.data.*;
 import net.buycraft.plugin.data.responses.*;
 import okhttp3.*;
 import retrofit2.Call;
@@ -196,5 +193,8 @@ public interface BuyCraftAPI {
 
     @POST("/events")
     public Call<Void> sendEvents(@Body List<ServerEvent> events);
+
+    @GET("/player/{id}/packages")
+    public Call<List<Purchase>> getPurchases(@Path("id") String id);
 
 }
